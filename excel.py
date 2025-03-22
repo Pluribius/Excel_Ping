@@ -38,6 +38,18 @@ def ping_ips_from_excel():
         except ValueError:
             print("Entrada no válida. Por favor, introduce un número entero para la fila.")
 
+    while True:
+        try:
+            timout_str = input("Introduce el tiempo de espera maximo (Segundos): ")
+            timeout = int(timout_str)
+            if timeout > 0:  # Aseguramos que el número de fila sea positivo
+                break
+            else:
+                print("Por favor, introduce un número de espera valio (mayor que 0).")
+        except ValueError:
+            print("Entrada no válida. Por favor, introduce un número entero .")
+
+
     sheet = workbook.active  # Asumiendo que quieres usar la hoja activa
     timeout_file = "timeout.txt"
 
@@ -65,19 +77,20 @@ def ping_ips_from_excel():
             try:
                 # Construye el comando ping según el sistema operativo
                 if os.name == 'nt':  # Windows
-                    command = ['ping', '-n', '1', '-w', '1000', str(ip_address)]
+                    command = ['ping', '-n', '5', '-w', '1000', (ip_address)]
+                    #command = [ 'ping', str(ip_address)]
                 else:  # Linux y macOS
                     command = ['ping', '-c', '1', '-W', '1', str(ip_address)]
 
                 process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout, stderr = process.communicate(timeout=2) # Añadimos un timeout de 2 segundos
+                stdout, stderr = process.communicate(timeout) # Añadimos un timeout de 2 segundos
                 return_code = process.returncode
 
                 if return_code == 0:
                     print(f"  {ip_address} es alcanzable.")
                 else:
-                    print(f"  {ip_address} NO es alcanzable.")
-                    f_timeout.write(f"{ip_address}\n")
+                    print(f"  {ip_address} NO es alcanzable.  Guardado en {timeout_file}")
+                    f_timeout.write(f"{ip_address}---unreachable\n")
                     if stderr:
                         print(f"  Error: {stderr.decode('utf-8').strip()}")
 
