@@ -77,8 +77,7 @@ def ping_ips_from_excel():
             try:
                 # Construye el comando ping según el sistema operativo
                 if os.name == 'nt':  # Windows
-                    command = ['ping', '-n', '5', '-w', '1000', int(ip_address)]
-                    #command = [ 'ping', str(ip_address)]
+                    command = ['ping', '-n', '1', '-w', '1000', (ip_address)]
                 else:  # Linux y macOS
                     command = ['ping', '-c', '1', '-W', '1', str(ip_address)]
 
