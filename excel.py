@@ -27,6 +27,17 @@ def ping_ips_from_excel():
         else:
             break
 
+    while True:
+        try:
+            row_num_str = input("Introduce el número de la fila que contiene las direcciones IP (ej. 2, 3, 4): ")
+            row_num = int(row_num_str)
+            if row_num > 0:  # Aseguramos que el número de fila sea positivo
+                break
+            else:
+                print("Por favor, introduce un número de fila válido (mayor que 0).")
+        except ValueError:
+            print("Entrada no válida. Por favor, introduce un número entero para la fila.")
+
     sheet = workbook.active  # Asumiendo que quieres usar la hoja activa
     timeout_file = "timeout.txt"
 
@@ -35,7 +46,7 @@ def ping_ips_from_excel():
         return
 
     print("\nComenzando a hacer ping a las direcciones IP...")
-    row_num = 1
+    
     with open(timeout_file, 'w') as f_timeout:
         while True:
             cell = sheet[f"{column_letter}{row_num}"]
