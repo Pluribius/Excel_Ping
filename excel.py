@@ -1,57 +1,58 @@
 import openpyxl
 import subprocess
 import time
+import os
 
 def ping_ips_from_excel():
     """
-    Prompts the user for an Excel file path and a column letter,
-    then pings each IP address found in that column until an empty cell is encountered.
+    Pide al usuario la ruta a un archivo de Excel y una letra de columna,
+    luego hace ping a cada dirección IP encontrada en esa columna hasta que se encuentra una celda vacía.
     """
     while True:
-        excel_path = input("Enter the path to your Excel file: ")
+        excel_path = input("Introduce la ruta a tu archivo de Excel: ")
         try:
             workbook = openpyxl.load_workbook(excel_path)
             break
         except FileNotFoundError:
-            print("Error: File not found. Please enter a valid path.")
+            print("Error: Archivo no encontrado. Por favor, introduce una ruta válida.")
         except Exception as e:
-            print(f"Error opening the Excel file: {e}")
+            print(f"Error al abrir el archivo de Excel: {e}")
             return
 
     while True:
-        column_letter = input("Enter the column letter containing the IP addresses (e.g., A, B, C): ").upper()
+        column_letter = input("Introduce la letra de la columna que contiene las direcciones IP (ej. A, B, C): ").upper()
         if not column_letter.isalpha() or len(column_letter) != 1:
-            print("Invalid input. Please enter a single letter for the column.")
+            print("Entrada no válida. Por favor, introduce una sola letra para la columna.")
         else:
             break
 
-    sheet = workbook.active  # Assuming you want to use the active sheet
+    sheet = workbook.active  # Asumiendo que quieres usar la hoja activa
 
     if sheet.max_row == 0:
-        print("The Excel sheet is empty.")
+        print("La hoja de Excel está vacía.")
         return
 
-    print("\nStarting to ping IP addresses...")
+    print("\nComenzando a hacer ping a las direcciones IP...")
     row_num = 1
     while True:
         cell = sheet[f"{column_letter}{row_num}"]
         ip_address = cell.value
 
         if ip_address is None or str(ip_address).strip() == "":
-            print("\nReached an empty cell. Stopping the process.")
+            print("\nSe alcanzó una celda vacía. Deteniendo el proceso.")
             break
 
         if not is_valid_ip(str(ip_address)):
-            print(f"Skipping invalid IP address: {ip_address} in row {row_num}")
+            print(f"Saltando dirección IP no válida: {ip_address} en la fila {row_num}")
             row_num += 1
             continue
 
-        print(f"\nPinging IP address: {ip_address} (Row {row_num})")
+        print(f"\nHaciendo ping a la dirección IP: {ip_address} (Fila {row_num})")
         try:
-            # Construct the ping command based on the operating system
+            # Construye el comando ping según el sistema operativo
             if os.name == 'nt':  # Windows
                 command = ['ping', '-n', '1', '-w', '1000', str(ip_address)]
-            else:  # Linux and macOS
+            else:  # Linux y macOS
                 command = ['ping', '-c', '1', '-W', '1', str(ip_address)]
 
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -59,24 +60,24 @@ def ping_ips_from_excel():
             return_code = process.returncode
 
             if return_code == 0:
-                print(f"  {ip_address} is reachable.")
+                print(f"  {ip_address} es alcanzable.")
             else:
-                print(f"  {ip_address} is NOT reachable.")
+                print(f"  {ip_address} NO es alcanzable.")
                 if stderr:
                     print(f"  Error: {stderr.decode('utf-8').strip()}")
 
         except FileNotFoundError:
-            print("Error: 'ping' command not found on this system.")
+            print("Error: Comando 'ping' no encontrado en este sistema.")
             break
         except Exception as e:
-            print(f"An error occurred while pinging {ip_address}: {e}")
+            print(f"Ocurrió un error al hacer ping a {ip_address}: {e}")
 
-        time.sleep(1)  # Wait for a short duration between pings
+        time.sleep(1)  # Espera un breve período entre pings
         row_num += 1
 
 def is_valid_ip(ip_str):
     """
-    Checks if a given string is a valid IPv4 address.
+    Comprueba si una cadena dada es una dirección IPv4 válida.
     """
     parts = ip_str.split('.')
     if len(parts) != 4:
